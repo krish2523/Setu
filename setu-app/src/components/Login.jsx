@@ -1,10 +1,10 @@
 // src/components/Login.jsx
 
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/config";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
@@ -15,21 +15,14 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  const handleSignUp = async () => {
-    setError("");
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const navigate = useNavigate();
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      navigate("/"); // Navigate to dashboard after login
     } catch (err) {
       setError(err.message);
     }
@@ -40,6 +33,7 @@ const Login = () => {
     setError("");
     try {
       await signInWithPopup(auth, provider);
+      navigate("/"); // Navigate to dashboard after login
     } catch (err) {
       setError(err.message);
     }
@@ -53,19 +47,19 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center login-background p-4">
       <div
-        className="w-full max-w-sm p-8 space-y-6 bg-white bg-opacity-10 rounded-2xl shadow-lg"
+        className="w-full max-w-sm p-8 space-y-4 bg-white bg-opacity-80 rounded-2xl shadow-lg"
         style={cardStyle}
       >
         <div className="flex flex-col items-center">
           <Logo />
-          <h1 className="text-3xl font-bold text-white">Setu</h1>
-          <p className="text-gray-300 mt-2">Welcome. Please sign in.</p>
+          <h1 className="text-3xl font-bold text-gray-900">Setu</h1>
+          <p className="text-gray-600 mt-2">Welcome back. Please sign in.</p>
         </div>
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div>
             <input
-              className="w-full px-4 py-3 bg-white bg-opacity-20 border border-transparent rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
               type="email"
               placeholder="Email Address"
               value={email}
@@ -75,7 +69,7 @@ const Login = () => {
           </div>
           <div>
             <input
-              className="w-full px-4 py-3 bg-white bg-opacity-20 border border-transparent rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
               type="password"
               placeholder="Password"
               value={password}
@@ -84,40 +78,34 @@ const Login = () => {
             />
           </div>
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-300">
+            <label className="flex items-center text-gray-700">
               <input
                 type="checkbox"
-                className="form-checkbox h-4 w-4 text-emerald-500 bg-gray-800 border-gray-600 rounded"
+                className="form-checkbox h-4 w-4 text-green-600"
               />
               <span className="ml-2">Remember Me</span>
             </label>
             <a
               href="#"
-              className="font-medium text-emerald-400 hover:text-emerald-300"
+              className="font-medium text-green-600 hover:text-green-500"
             >
               Forgot Password?
             </a>
           </div>
-          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
-          <div className="space-y-4 pt-4">
+          {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+          <div className="space-y-4 pt-2">
             <button
               type="submit"
-              className="w-full py-3 font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
+              className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300"
             >
               Login
             </button>
             <button
               type="button"
-              onClick={handleSignUp}
-              className="w-full py-3 font-semibold text-white bg-transparent border-2 border-gray-400 rounded-lg hover:bg-green-900 hover:border-green-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-300"
-            >
-              Sign Up
-            </button>
-            <button
-              type="button"
               onClick={handleGoogleLogin}
-              className="w-full py-3 font-semibold text-gray-800 bg-white rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full py-3 font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2 transition-all duration-300"
             >
+              {/* Google Logo SVG */}
               <svg
                 className="w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"
@@ -144,6 +132,16 @@ const Login = () => {
             </button>
           </div>
         </form>
+
+        <p className="text-center text-sm text-gray-600 mt-4">
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-green-600 hover:text-green-500"
+          >
+            Sign Up
+          </Link>
+        </p>
       </div>
     </div>
   );

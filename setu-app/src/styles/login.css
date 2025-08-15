@@ -1,10 +1,10 @@
-/* src/components/Login.css */
+/* src/styles/login.css */
 
 .login-background {
   width: 100%;
   min-height: 100vh;
   
-  /* Make sure your image is in src/assets/background.jpg */
+  /* Points to your background image */
   background-image: url('../assets/background.png'); 
   background-size: cover;
   background-position: center;
