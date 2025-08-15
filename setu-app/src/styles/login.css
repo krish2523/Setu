@@ -1,20 +1,12 @@
 /* src/components/Login.css */
 
-.network-background {
+.login-background {
   width: 100%;
   min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-  background-color: #0a0a1a;
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(167, 139, 250, 0.3), transparent 20%),
-    radial-gradient(circle at 85% 70%, rgba(59, 130, 246, 0.3), transparent 20%),
-    radial-gradient(circle at 50% 50%, rgba(74, 222, 128, 0.1), transparent 30%);
-  background-size: 100% 100%;
-  animation: subtleShift 20s ease infinite alternate;
-}
-
-@keyframes subtleShift {
-  from { background-position: 0% 0%; }
-  to { background-position: 20% -20%; }
+  
+  /* Make sure your image is in src/assets/background.jpg */
+  background-image: url('../assets/background.png'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }

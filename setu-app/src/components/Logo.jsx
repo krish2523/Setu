@@ -3,7 +3,7 @@ import React from "react";
 
 const Logo = () => {
   return (
-    <div className="w-16 h-16 mb-4 flex items-center justify-center bg-teal-400 bg-opacity-10 rounded-full">
+    <div className="w-16 h-16 mb-4 flex items-center justify-center bg-green-500 bg-opacity-10 rounded-full">
       <svg
         width="32"
         height="32"
@@ -13,7 +13,7 @@ const Logo = () => {
       >
         <path
           d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-          stroke="#059669"
+          stroke="#10B981" // Changed to a vibrant emerald green
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
