@@ -19,7 +19,7 @@ const Navbar = () => {
     <nav className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-lg p-4 flex justify-between items-center">
       <Link to="/" className="flex items-center gap-2">
         <Logo />
-        <span className="text-xl font-bold text-white">Setu</span>
+        <span className="text-xl font-bold text-white rounded">Setu</span>
       </Link>
       <div>
         {user ? (

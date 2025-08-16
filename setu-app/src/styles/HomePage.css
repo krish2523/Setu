@@ -1,0 +1,72 @@
+/* src/styles/HomePage.css */
+
+.hero-container {
+  position: relative;
+  height: 32rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* The main flex container for the collage columns */
+.hero-collage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  gap: 0.5rem; /* Reduced gap for a tighter look */
+  padding: 0.5rem; /* Reduced padding */
+}
+
+/* A general column */
+.collage-col {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Reduced gap for a tighter look */
+  padding-bottom: 0.5rem;
+}
+
+/* A specific class for the large column */
+.collage-col-large {
+  flex: 2;
+}
+
+/* A specific class for the small columns */
+.collage-col-small {
+  flex: 1;
+}
+
+.collage-image {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: 0.75rem;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Changed to a gradient for better text readability */
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.7) 20%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 2;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+}
