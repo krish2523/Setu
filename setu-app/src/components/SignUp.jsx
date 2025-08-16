@@ -101,14 +101,14 @@ const SignUp = () => {
                 role === "ngo" ? "bg-green-600 text-white" : "bg-gray-700"
               }`}
             >
-              I am an NGO
+              I am with NGO
             </button>
           </div>
           <div>
             <input
               className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500"
               type="text"
-              placeholder="Display Name"
+              placeholder="Display Name/ NGO Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
