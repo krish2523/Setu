@@ -1,0 +1,13 @@
+/* src/styles/ReportForm.css */
+/* This forces the map inside the form to fit its container */
+.report-map-wrapper {
+  height: 14rem; /* h-56 */
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.report-map-wrapper .leaflet-container {
+  height: 100%;
+  width: 100%;
+}

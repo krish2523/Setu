@@ -1,0 +1,5 @@
+/* src/styles/Dashboard.css */
+/* This ensures the main dashboard map stays behind the modal */
+.dashboard-map-container {
+  z-index: 1;
+}

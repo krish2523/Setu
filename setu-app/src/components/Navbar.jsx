@@ -1,5 +1,5 @@
 // src/components/Navbar.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { signOut } from "firebase/auth";
@@ -7,71 +7,67 @@ import { auth } from "../firebase/config";
 import Logo from "./Logo";
 
 const Navbar = () => {
-  const { user, role } = useAuth(); // Get the role as well
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/login"); // Redirect to login after logout
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+    await signOut(auth);
+    navigate("/login");
   };
 
   return (
-    <nav className="bg-white/90 backdrop-filter backdrop-blur-lg shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
-      <Link to="/" className="flex items-center gap-2">
+    // Reduced padding from p-4 to p-2 for a slimmer look
+    <nav className="bg-white/80 backdrop-blur-md shadow-sm p-2 flex justify-between items-center sticky top-0 z-50">
+      <Link to="/" className="flex items-center gap-2 pl-4">
         <Logo />
-        <span className="text-xl font-bold text-gray-800">Setu</span>
+        <span className="text-lg font-bold text-gray-800">Setu</span>
       </Link>
+
       <div>
         {user ? (
-          // --- LOGGED-IN USER VIEW ---
-          <div className="flex items-center gap-6">
-            <Link
-              to="/"
-              className="font-semibold text-gray-600 hover:text-green-600"
-            >
-              Home
-            </Link>
-
-            {/* Only show "Report" link if the user is a citizen */}
-            {role === "citizen" && (
-              <Link
-                to="/report"
-                className="font-semibold text-gray-600 hover:text-green-600"
-              >
-                Report an Incident
-              </Link>
-            )}
-
-            <Link
-              to="/activity"
-              className="font-semibold text-gray-600 hover:text-green-600"
-            >
-              My Activity
-            </Link>
-
+          <div className="relative pr-4">
             <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full"
+              onClick={() => setDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2"
             >
-              Logout
+              <span className="font-semibold text-gray-700 hidden sm:block">
+                {user.displayName}
+              </span>
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm">
+                {user.displayName?.charAt(0).toUpperCase()}
+              </div>
             </button>
+
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl z-20">
+                <Link
+                  to="/activity"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  My Activity
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         ) : (
-          // --- LOGGED-OUT USER VIEW (for the public HomePage) ---
-          <div className="flex gap-4">
+          <div className="flex gap-4 pr-4">
             <Link
               to="/login"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full text-sm"
             >
               Login
             </Link>
             <Link
               to="/signup"
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full text-sm"
             >
               Sign Up
             </Link>
@@ -81,5 +77,4 @@ const Navbar = () => {
     </nav>
   );
 };
-
 export default Navbar;

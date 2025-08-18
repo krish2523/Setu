@@ -1,21 +1,19 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
-
-// Import all your pages and components
 import Dashboard from "./pages/Dashboard";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
+import ReportForm from "./pages/ReportForm"; // Make sure this is imported
 
 function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="text-center p-8">Loading Application...</div>;
+    return <div>Loading Application...</div>;
   }
 
   return (
-    // The main div is now clean, without a global navbar or background
     <div>
       <Routes>
         <Route path="/" element={<Dashboard />} />
@@ -24,9 +22,13 @@ function App() {
           path="/signup"
           element={user ? <Navigate to="/" /> : <SignUp />}
         />
+        {/* Add the protected report route back */}
+        <Route
+          path="/report"
+          element={user ? <ReportForm /> : <Navigate to="/login" />}
+        />
       </Routes>
     </div>
   );
 }
-
 export default App;

@@ -8,7 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
-import "../styles/ReportForm.css"; // Import the dedicated CSS file
+import "../styles/ReportForm.css";
 
 const ReportForm = () => {
   const { user } = useAuth();
@@ -21,29 +21,38 @@ const ReportForm = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(true);
 
-  // Get user's location when the component loads
-  useEffect(() => {
+  const fetchLocation = () => {
+    setLocationLoading(true);
+    setError("");
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
+        setLocationLoading(false);
       },
       (err) => {
         setError(
           "Could not get your location. Please enable location services in your browser."
         );
+        setLocationLoading(false);
         console.error(err);
       }
     );
+  };
+
+  useEffect(() => {
+    fetchLocation();
   }, []);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length > 3) {
       setError("You can upload a maximum of 3 photos.");
+      e.target.value = null;
       return;
     }
     setPhotos(selectedFiles);
@@ -52,41 +61,29 @@ const ReportForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) {
-      setError("You must be logged in to submit a report.");
-      return;
-    }
-    if (photos.length === 0) {
-      setError("Please upload at least one photo of the incident.");
-      return;
-    }
-    if (!location) {
+    if (!user || photos.length === 0 || !location || !category) {
       setError(
-        "Location is required. Please ensure location services are enabled."
+        "All fields, including a category, photo, and location, are required."
       );
       return;
     }
-
     setLoading(true);
     setError("");
 
     try {
-      // 1. Upload all images in parallel
       const uploadPromises = photos.map((photo) => {
         const storageRef = ref(storage, `reports/${Date.now()}_${photo.name}`);
         return uploadBytes(storageRef, photo).then((snapshot) =>
           getDownloadURL(snapshot.ref)
         );
       });
-
       const photoURLs = await Promise.all(uploadPromises);
 
-      // 2. Create a new document in the 'reports' collection
       await addDoc(collection(db, "reports"), {
         title,
         description,
         category,
-        photoURLs, // Save array of URLs
+        photoURLs,
         location,
         authorId: user.uid,
         authorName: user.displayName,
@@ -96,7 +93,7 @@ const ReportForm = () => {
 
       setLoading(false);
       alert("Report submitted successfully!");
-      navigate("/"); // Redirect to the dashboard
+      navigate("/");
     } catch (err) {
       setError("Failed to submit report. Please try again.");
       setLoading(false);
@@ -105,14 +102,14 @@ const ReportForm = () => {
   };
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="min-h-screen flex justify-center items-center py-12 px-4">
-        <div className="w-full max-w-2xl p-8 bg-white rounded-xl shadow-lg space-y-6">
-          <h1 className="text-3xl font-bold text-gray-900 text-center">
+      <div className="flex justify-center items-center py-12 px-4">
+        <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-lg space-y-6">
+          <h1 className="text-3xl font-bold text-black text-center">
             Report an Incident
           </h1>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-800 mb-6">
             Help us keep your community clean and safe.
           </p>
 
@@ -120,7 +117,7 @@ const ReportForm = () => {
             <div>
               <label
                 htmlFor="title"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-black"
               >
                 Title
               </label>
@@ -128,7 +125,7 @@ const ReportForm = () => {
                 id="title"
                 type="text"
                 placeholder="e.g., Overflowing bin on MG Road"
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:ring-green-500 focus:border-green-500"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -138,14 +135,14 @@ const ReportForm = () => {
             <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-black"
               >
                 Description
               </label>
               <textarea
                 id="description"
                 placeholder="Provide details like the exact landmark, severity, etc."
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg h-24 focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500 h-24 focus:ring-green-500 focus:border-green-500"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
@@ -155,13 +152,13 @@ const ReportForm = () => {
             <div>
               <label
                 htmlFor="category"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-black"
               >
                 Category
               </label>
               <select
                 id="category"
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black focus:ring-green-500 focus:border-green-500"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
@@ -176,7 +173,7 @@ const ReportForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-black">
                 Upload Photos (Max 3)
               </label>
               <input
@@ -185,7 +182,7 @@ const ReportForm = () => {
                 multiple
                 onChange={handleFileChange}
                 required
-                className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                className="mt-1 w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
               />
               <div className="mt-2 flex gap-2">
                 {photos.map((photo, index) => (
@@ -200,18 +197,51 @@ const ReportForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Incident Location
-              </label>
-              <div className="mt-1 w-full h-56 bg-gray-200 rounded-lg">
-                {location ? (
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-black">
+                  Incident Location
+                </label>
+                <button
+                  type="button"
+                  onClick={fetchLocation}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Refresh Location
+                </button>
+              </div>
+              <div className="mt-1 h-56 bg-gray-200 rounded-lg">
+                {locationLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <p className="text-gray-600">Getting your location...</p>
+                  </div>
+                ) : location ? (
                   <MapDisplay
                     latitude={location.lat}
                     longitude={location.lng}
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <p>Getting your location...</p>
+                  <div className="h-full w-full flex items-center justify-center p-4 text-center">
+                    <p className="text-red-500">Could not get location.</p>
                   </div>
                 )}
               </div>
