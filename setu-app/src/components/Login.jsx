@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail, // 1. Import the password reset function
 } from "firebase/auth";
 import Logo from "./Logo";
 import "../styles/login.css";
@@ -22,7 +23,7 @@ const Login = () => {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/"); // Navigate to dashboard after login
+      navigate("/");
     } catch (err) {
       setError(err.message);
     }
@@ -33,9 +34,24 @@ const Login = () => {
     setError("");
     try {
       await signInWithPopup(auth, provider);
-      navigate("/"); // Navigate to dashboard after login
+      navigate("/");
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  // 2. Add the new handler function
+  const handleForgotPassword = async () => {
+    const emailToReset = prompt(
+      "Please enter your email address to reset your password:"
+    );
+    if (emailToReset) {
+      try {
+        await sendPasswordResetEmail(auth, emailToReset);
+        alert("Password reset email sent! Please check your inbox.");
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
@@ -59,7 +75,7 @@ const Login = () => {
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div>
             <input
-              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500"
               type="email"
               placeholder="Email Address"
               value={email}
@@ -69,7 +85,7 @@ const Login = () => {
           </div>
           <div>
             <input
-              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500"
               type="password"
               placeholder="Password"
               value={password}
@@ -85,8 +101,10 @@ const Login = () => {
               />
               <span className="ml-2">Remember Me</span>
             </label>
+            {/* 3. Update the link to call our new function */}
             <a
               href="#"
+              onClick={handleForgotPassword}
               className="font-medium text-green-600 hover:text-green-500"
             >
               Forgot Password?
@@ -96,16 +114,15 @@ const Login = () => {
           <div className="space-y-4 pt-2">
             <button
               type="submit"
-              className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300"
+              className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
             >
               Login
             </button>
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full py-3 font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2 transition-all duration-300"
+              className="w-full py-3 font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2"
             >
-              {/* Google Logo SVG */}
               <svg
                 className="w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"

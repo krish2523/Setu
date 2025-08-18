@@ -17,6 +17,7 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("citizen");
+  const [city, setCity] = useState(""); // 1. New state for the city
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -30,11 +31,14 @@ const SignUp = () => {
         password
       );
       const user = userCredential.user;
+
+      // Save user data, now including the city
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         displayName: name,
         email: email,
         role: role,
+        city: city, // 3. Save the city here
         points: 0,
         createdAt: new Date(),
       });
@@ -45,16 +49,23 @@ const SignUp = () => {
   };
 
   const handleGoogleSignUp = async () => {
+    if (!city) {
+      setError("Please enter your city before signing up with Google.");
+      return;
+    }
     const provider = new GoogleAuthProvider();
     setError("");
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
+      // Save user data, now including the city
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         displayName: user.displayName,
         email: user.email,
         role: role,
+        city: city, // 3. Save the city here
         points: 0,
         createdAt: new Date(),
       });
@@ -101,16 +112,27 @@ const SignUp = () => {
                 role === "ngo" ? "bg-green-600 text-white" : "bg-gray-700"
               }`}
             >
-              I am with NGO
+              I am an NGO
             </button>
           </div>
           <div>
             <input
               className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500"
               type="text"
-              placeholder="Display Name/ NGO Name"
+              placeholder="Display Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          {/* 2. New input field for the city */}
+          <div>
+            <input
+              className="w-full px-4 py-3 bg-white bg-opacity-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500"
+              type="text"
+              placeholder="Your City (e.g., Kolkata)"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
               required
             />
           </div>
@@ -147,7 +169,6 @@ const SignUp = () => {
               onClick={handleGoogleSignUp}
               className="w-full py-3 font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2"
             >
-              {/* Google Logo SVG */}
               <svg
                 className="w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"
