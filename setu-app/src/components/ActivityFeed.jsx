@@ -1,5 +1,6 @@
 // src/components/ActivityFeed.jsx
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { db } from "../firebase/config";
 import {
   collection,
@@ -31,6 +32,7 @@ const statusStyles = {
   },
 };
 
+// The onReportClick prop has been removed
 const ActivityFeed = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ const ActivityFeed = () => {
     const q = query(
       collection(db, "reports"),
       orderBy("createdAt", "desc"),
-      limit(15)
+      limit(20)
     );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const reportsData = querySnapshot.docs.map((doc) => ({
@@ -52,24 +54,35 @@ const ActivityFeed = () => {
     return () => unsubscribe();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="p-6 bg-white rounded-lg shadow-md">Loading feed...</div>
+    );
+  }
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md h-full">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Live Incidents</h2>
-      {loading ? (
-        <p>Loading feed...</p>
-      ) : (
-        <div className="space-y-4 overflow-y-auto h-[70vh]">
-          {reports.map((report) => {
-            const status = statusStyles[report.status] || {
-              text: "Unknown",
-              bg: "bg-gray-100",
-              text_color: "text-gray-800",
-              border: "border-gray-500",
-            };
-            return (
+    // The component now has a cleaner, more robust height and flex structure
+    <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 flex-shrink-0">
+        Live Incidents
+      </h2>
+      <div className="space-y-4 overflow-y-auto flex-grow">
+        {reports.map((report) => {
+          const status = statusStyles[report.status] || {
+            text: "Unknown",
+            bg: "bg-gray-100",
+            text_color: "text-gray-800",
+            border: "border-gray-500",
+          };
+          return (
+            // The entire card is now a single Link
+            <Link
+              to={`/incident/${report.id}`}
+              key={report.id}
+              className="block"
+            >
               <div
-                key={report.id}
-                className={`p-4 border-l-4 ${status.border} bg-gray-50 rounded-r-lg flex items-start gap-4 cursor-pointer hover:shadow-lg transition-shadow`}
+                className={`p-4 border-l-4 ${status.border} bg-gray-50 rounded-r-lg flex items-start gap-4 hover:shadow-lg transition-shadow`}
               >
                 <img
                   src={report.photoURLs[0]}
@@ -90,10 +103,10 @@ const ActivityFeed = () => {
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 };

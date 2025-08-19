@@ -6,46 +6,65 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy,
+  getDocs,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
+import { Link } from "react-router-dom";
 
 const MyActivity = () => {
-  const { user } = useAuth();
+  const { user, loading: userLoading } = useAuth();
   const [myReports, setMyReports] = useState([]);
+  const [volunteeredFor, setVolunteeredFor] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return; // Don't query if user is not logged in
+    if (!user) return;
 
-    const reportsRef = collection(db, "reports");
-    // This query fetches only the reports where 'authorId' matches the current user's ID
-    const q = query(
-      reportsRef,
-      where("authorId", "==", user.uid),
-      orderBy("createdAt", "desc")
+    const reportsQuery = query(
+      collection(db, "reports"),
+      where("authorId", "==", user.uid)
     );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const reportsData = [];
-      querySnapshot.forEach((doc) => {
-        reportsData.push({ id: doc.id, ...doc.data() });
-      });
-      setMyReports(reportsData);
+    const unsubscribeReports = onSnapshot(reportsQuery, (snapshot) => {
+      setMyReports(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Cleanup listener
-  }, [user]); // Rerun this effect if the user changes
+    const fetchVolunteered = async () => {
+      if (user.volunteeredFor && user.volunteeredFor.length > 0) {
+        const promises = user.volunteeredFor.map((reportId) =>
+          getDoc(doc(db, "reports", reportId))
+        );
+        const reportDocs = await Promise.all(promises);
+        setVolunteeredFor(
+          reportDocs
+            .filter((doc) => doc.exists())
+            .map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      }
+    };
+    fetchVolunteered();
+
+    return () => unsubscribeReports();
+  }, [user]);
+
+  if (userLoading || loading) {
+    return (
+      <div>
+        <Navbar />
+        <p className="p-8">Loading your activity...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen">
       <Navbar />
-      <main className="p-8">
+      <main className="max-w-6xl mx-auto p-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">My Activity</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Left Column: Stats & Badges */}
           <div className="md:col-span-1 space-y-8">
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <h3 className="text-gray-500 font-semibold">Your Total Points</h3>
@@ -58,7 +77,6 @@ const MyActivity = () => {
                 Collected Badges
               </h3>
               <div className="flex justify-center gap-4">
-                {/* Placeholder for badges */}
                 <span className="text-4xl">🏆</span>
                 <span className="text-4xl">🌿</span>
                 <span className="text-4xl">♻️</span>
@@ -66,43 +84,56 @@ const MyActivity = () => {
             </div>
           </div>
 
-          {/* Right Column: Report History */}
-          <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Your Report History
-            </h2>
-            <div className="space-y-4">
-              {loading && <p>Loading your reports...</p>}
-              {!loading && myReports.length === 0 && (
-                <p>You haven't submitted any reports yet.</p>
-              )}
-              {myReports.map((report) => (
-                <div key={report.id} className="border-b pb-4 flex gap-4">
-                  <img
-                    src={report.photoURLs[0]}
-                    alt={report.title}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
-                  <div>
-                    <h4 className="font-bold">{report.title}</h4>
-                    <p className="text-sm text-gray-600">{report.category}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(
-                        report.createdAt?.toDate()
-                      ).toLocaleDateString()}
-                    </p>
-                    <span
-                      className={`mt-2 inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                        report.status === "completed"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {report.status.replace("_", " ")}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          <div className="md:col-span-2 space-y-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Your Report History
+              </h2>
+              <div className="space-y-4">
+                {myReports.map((report) => (
+                  <Link
+                    to={`/incident/${report.id}`}
+                    key={report.id}
+                    className="border-b pb-4 flex gap-4 items-center hover:bg-gray-50"
+                  >
+                    <img
+                      src={report.photoURLs[0]}
+                      alt={report.title}
+                      className="w-20 h-20 object-cover rounded-md"
+                    />
+                    <div>
+                      <h4 className="font-bold">{report.title}</h4>
+                      <p className="text-sm text-gray-500">
+                        {new Date(
+                          report.createdAt?.toDate()
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Volunteered Initiatives
+              </h2>
+              <div className="space-y-4">
+                {volunteeredFor.map((report) => (
+                  <Link
+                    to={`/incident/${report.id}`}
+                    key={report.id}
+                    className="border-b pb-4 flex items-center hover:bg-gray-50"
+                  >
+                    <div className="flex-grow">
+                      <h4 className="font-bold">{report.title}</h4>
+                      <p className="text-sm text-gray-500">
+                        Status: {report.status.replace("_", " ")}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -110,5 +141,4 @@ const MyActivity = () => {
     </div>
   );
 };
-
 export default MyActivity;

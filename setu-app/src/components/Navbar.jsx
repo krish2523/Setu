@@ -1,5 +1,5 @@
 // src/components/Navbar.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { signOut } from "firebase/auth";
@@ -10,15 +10,28 @@ const Navbar = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/login");
   };
 
+  // This is a common pattern to close the dropdown when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   return (
-    // Reduced padding from p-4 to p-2 for a slimmer look
-    <nav className="bg-white/80 backdrop-blur-md shadow-sm p-2 flex justify-between items-center sticky top-0 z-50">
+    <nav className="bg-white/90 backdrop-blur-md shadow-sm p-2 flex justify-between items-center sticky top-0 z-50">
       <Link to="/" className="flex items-center gap-2 pl-4">
         <Logo />
         <span className="text-lg font-bold text-gray-800">Setu</span>
@@ -26,7 +39,7 @@ const Navbar = () => {
 
       <div>
         {user ? (
-          <div className="relative pr-4">
+          <div className="relative pr-4" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2"

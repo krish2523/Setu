@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, storage } from "../firebase/config";
+import { db } from "../firebase/config"; // We no longer need 'storage' from firebase
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
@@ -23,9 +22,9 @@ const ReportForm = () => {
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(true);
 
-  const fetchLocation = () => {
+  // This logic for getting location remains the same
+  useEffect(() => {
     setLocationLoading(true);
-    setError("");
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
@@ -35,35 +34,27 @@ const ReportForm = () => {
         setLocationLoading(false);
       },
       (err) => {
-        setError(
-          "Could not get your location. Please enable location services in your browser."
-        );
+        setError("Could not get location. Please enable location services.");
         setLocationLoading(false);
-        console.error(err);
       }
     );
-  };
-
-  useEffect(() => {
-    fetchLocation();
   }, []);
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length > 3) {
-      setError("You can upload a maximum of 3 photos.");
-      e.target.value = null;
-      return;
-    }
+    const selectedFiles = Array.from(e.target.files).slice(0, 3); // Limit to 3 files
     setPhotos(selectedFiles);
-    setError("");
+    setError(
+      selectedFiles.length > 3
+        ? "You can only upload a maximum of 3 photos."
+        : ""
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || photos.length === 0 || !location || !category) {
       setError(
-        "All fields, including a category, photo, and location, are required."
+        "All fields, including category, photo, and location, are required."
       );
       return;
     }
@@ -71,19 +62,34 @@ const ReportForm = () => {
     setError("");
 
     try {
+      // --- UPDATED: Cloudinary Upload Logic ---
       const uploadPromises = photos.map((photo) => {
-        const storageRef = ref(storage, `reports/${Date.now()}_${photo.name}`);
-        return uploadBytes(storageRef, photo).then((snapshot) =>
-          getDownloadURL(snapshot.ref)
+        const formData = new FormData();
+        formData.append("file", photo);
+        formData.append(
+          "upload_preset",
+          import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
         );
-      });
-      const photoURLs = await Promise.all(uploadPromises);
 
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+
+        return fetch(uploadUrl, {
+          method: "POST",
+          body: formData,
+        }).then((response) => response.json());
+      });
+
+      const cloudinaryResponses = await Promise.all(uploadPromises);
+      const photoURLs = cloudinaryResponses.map((res) => res.secure_url);
+      // --- END UPDATED LOGIC ---
+
+      // Save the report to Firestore with the Cloudinary URLs
       await addDoc(collection(db, "reports"), {
         title,
         description,
         category,
-        photoURLs,
+        photoURLs, // The array of Cloudinary URLs
         location,
         authorId: user.uid,
         authorName: user.displayName,
@@ -109,9 +115,6 @@ const ReportForm = () => {
           <h1 className="text-3xl font-bold text-black text-center">
             Report an Incident
           </h1>
-          <p className="text-center text-gray-800 mb-6">
-            Help us keep your community clean and safe.
-          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -125,7 +128,7 @@ const ReportForm = () => {
                 id="title"
                 type="text"
                 placeholder="e.g., Overflowing bin on MG Road"
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -142,7 +145,7 @@ const ReportForm = () => {
               <textarea
                 id="description"
                 placeholder="Provide details like the exact landmark, severity, etc."
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500 h-24 focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-500 h-24"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
@@ -158,7 +161,7 @@ const ReportForm = () => {
               </label>
               <select
                 id="category"
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black focus:ring-green-500 focus:border-green-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
@@ -182,7 +185,7 @@ const ReportForm = () => {
                 multiple
                 onChange={handleFileChange}
                 required
-                className="mt-1 w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                className="mt-1 w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
               />
               <div className="mt-2 flex gap-2">
                 {photos.map((photo, index) => (
@@ -197,38 +200,9 @@ const ReportForm = () => {
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-black">
-                  Incident Location
-                </label>
-                <button
-                  type="button"
-                  onClick={fetchLocation}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Refresh Location
-                </button>
-              </div>
+              <label className="block text-sm font-medium text-black">
+                Incident Location
+              </label>
               <div className="mt-1 h-56 bg-gray-200 rounded-lg">
                 {locationLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
@@ -256,7 +230,7 @@ const ReportForm = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-all duration-300"
+              className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
             >
               {loading ? "Submitting Report..." : "Submit Report"}
             </button>
