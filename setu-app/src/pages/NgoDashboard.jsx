@@ -1,16 +1,31 @@
-// src/pages/NgoDashboard.jsx
 import React from "react";
-import Navbar from "../components/Navbar"; 
+import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import ActivityFeed from "../components/ActivityFeed";
+import LiveMap from "../components/LiveMap";
 
 const NgoDashboard = () => {
   return (
-    <div>
-      <Navbar /> {/* 2. Add the Navbar here */}
-      <div className="text-center p-8">
-        <h1 className="text-3xl font-bold">NGO Dashboard</h1>
-        <p>Welcome! Manage your projects and view community hotspots.</p>
-        {/* We will build the rest of this dashboard later */}
-      </div>
+    <div className="bg-gray-100 min-h-screen">
+      <Navbar />
+      <main className="p-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3 space-y-8">
+          <div className="h-[70vh] bg-white rounded-xl shadow-md">
+            <LiveMap />
+          </div>
+
+          <Link
+            to="/ngo/activity"
+            className="w-full block text-center py-4 text-xl font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all"
+          >
+            Go to Activity
+          </Link>
+        </div>
+
+        <div className="lg:col-span-2">
+          <ActivityFeed />
+        </div>
+      </main>
     </div>
   );
 };

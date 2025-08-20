@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -17,7 +16,6 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  // This is a common pattern to close the dropdown when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -25,14 +23,15 @@ const Navbar = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <nav className="bg-white/90 backdrop-blur-md shadow-sm p-2 flex justify-between items-center sticky top-0 z-50">
-      <Link to="/" className="flex items-center gap-2 pl-4">
+      <Link
+        to={user?.role === "ngo" ? "/ngo" : "/"}
+        className="flex items-center gap-2 pl-4"
+      >
         <Logo />
         <span className="text-lg font-bold text-gray-800">Setu</span>
       </Link>
@@ -41,7 +40,7 @@ const Navbar = () => {
         {user ? (
           <div className="relative pr-4" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen(!isDropdownOpen)}
+              onClick={() => setDropdownOpen((v) => !v)}
               className="flex items-center gap-2"
             >
               <span className="font-semibold text-gray-700 hidden sm:block">
@@ -53,14 +52,26 @@ const Navbar = () => {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl z-20">
-                <Link
-                  to="/activity"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  My Activity
-                </Link>
+              <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-xl z-20">
+                {/* Role-aware activity link */}
+                {user?.role === "ngo" ? (
+                  <Link
+                    to="/ngo/activity"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    Activity
+                  </Link>
+                ) : (
+                  <Link
+                    to="/activity"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    My Activity
+                  </Link>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -90,4 +101,5 @@ const Navbar = () => {
     </nav>
   );
 };
+
 export default Navbar;

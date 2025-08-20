@@ -18,6 +18,7 @@ const redIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+
 const greenIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -28,6 +29,7 @@ const greenIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+
 const yellowIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png",
@@ -39,6 +41,7 @@ const yellowIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// Helper function to decide marker color
 const getIcon = (status) => {
   switch (status) {
     case "completed":
@@ -46,22 +49,22 @@ const getIcon = (status) => {
     case "in_progress":
       return yellowIcon;
     default:
-      return redIcon; // 'pending_verification'
+      return redIcon; // pending_verification or anything else
   }
 };
 
 const LiveMap = () => {
-  const [reports, setReports] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   const defaultPosition = [22.5726, 88.3639]; // Kolkata
 
   useEffect(() => {
-    const q = query(collection(db, "reports"));
+    const q = query(collection(db, "incidents")); // ✅ fixed: match your Firestore
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const reportsData = querySnapshot.docs.map((doc) => ({
+      const incidentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setReports(reportsData);
+      setIncidents(incidentsData);
     });
     return () => unsubscribe();
   }, []);
@@ -76,20 +79,22 @@ const LiveMap = () => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
-      {reports.map((report) => (
+      {incidents.map((incident) => (
         <Marker
-          key={report.id}
-          position={[report.location.lat, report.location.lng]}
-          icon={getIcon(report.status)}
+          key={incident.id}
+          position={[incident.location.lat, incident.location.lng]}
+          icon={getIcon(incident.status)}
         >
           <Popup>
-            <b>{report.title}</b>
+            <b>{incident.title}</b>
             <br />
-            {report.description}
+            {incident.description}
+            <br />
+            <small>Status: {incident.status}</small>
           </Popup>
         </Marker>
       ))}
-      <ResizeMap /> {/* Add the helper here */}
+      <ResizeMap /> {/* Ensures map resizes properly */}
     </MapContainer>
   );
 };
