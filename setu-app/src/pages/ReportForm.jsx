@@ -1,9 +1,15 @@
 // src/pages/ReportForm.jsx
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../firebase/config"; // We no longer need 'storage' from firebase
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/config";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
@@ -12,7 +18,6 @@ import "../styles/ReportForm.css";
 const ReportForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -22,8 +27,7 @@ const ReportForm = () => {
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(true);
 
-  // This logic for getting location remains the same
-  useEffect(() => {
+  const fetchLocation = () => {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -38,10 +42,14 @@ const ReportForm = () => {
         setLocationLoading(false);
       }
     );
+  };
+
+  useEffect(() => {
+    fetchLocation();
   }, []);
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files).slice(0, 3); // Limit to 3 files
+    const selectedFiles = Array.from(e.target.files).slice(0, 3);
     setPhotos(selectedFiles);
     setError(
       selectedFiles.length > 3
@@ -53,16 +61,14 @@ const ReportForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || photos.length === 0 || !location || !category) {
-      setError(
-        "All fields, including category, photo, and location, are required."
-      );
+      setError("All fields are required.");
       return;
     }
     setLoading(true);
     setError("");
 
     try {
-      // --- UPDATED: Cloudinary Upload Logic ---
+      // Step 1: Upload photos to Cloudinary
       const uploadPromises = photos.map((photo) => {
         const formData = new FormData();
         formData.append("file", photo);
@@ -70,26 +76,21 @@ const ReportForm = () => {
           "upload_preset",
           import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
         );
-
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-        return fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
-        }).then((response) => response.json());
+        return fetch(uploadUrl, { method: "POST", body: formData }).then(
+          (response) => response.json()
+        );
       });
-
       const cloudinaryResponses = await Promise.all(uploadPromises);
       const photoURLs = cloudinaryResponses.map((res) => res.secure_url);
-      // --- END UPDATED LOGIC ---
 
-      // Save the report to Firestore with the Cloudinary URLs
+      // Step 2: Save the report to Firestore
       await addDoc(collection(db, "reports"), {
         title,
         description,
         category,
-        photoURLs, // The array of Cloudinary URLs
+        photoURLs,
         location,
         authorId: user.uid,
         authorName: user.displayName,
@@ -97,8 +98,14 @@ const ReportForm = () => {
         status: "pending_verification",
       });
 
+      // Step 3: Award 5 points
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        points: increment(5),
+      });
+
       setLoading(false);
-      alert("Report submitted successfully!");
+      alert("Report submitted successfully! You've earned 5 points.");
       navigate("/");
     } catch (err) {
       setError("Failed to submit report. Please try again.");
@@ -115,7 +122,6 @@ const ReportForm = () => {
           <h1 className="text-3xl font-bold text-black text-center">
             Report an Incident
           </h1>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -134,7 +140,6 @@ const ReportForm = () => {
                 required
               />
             </div>
-
             <div>
               <label
                 htmlFor="description"
@@ -151,7 +156,6 @@ const ReportForm = () => {
                 required
               />
             </div>
-
             <div>
               <label
                 htmlFor="category"
@@ -174,7 +178,6 @@ const ReportForm = () => {
                 <option value="Deforestation">Deforestation</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-black">
                 Upload Photos (Max 3)
@@ -198,7 +201,6 @@ const ReportForm = () => {
                 ))}
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-black">
                 Incident Location
@@ -206,7 +208,7 @@ const ReportForm = () => {
               <div className="mt-1 h-56 bg-gray-200 rounded-lg">
                 {locationLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
-                    <p className="text-gray-600">Getting your location...</p>
+                    <p>Getting location...</p>
                   </div>
                 ) : location ? (
                   <MapDisplay
@@ -220,13 +222,11 @@ const ReportForm = () => {
                 )}
               </div>
             </div>
-
             {error && (
               <p className="text-red-500 text-sm text-center font-semibold">
                 {error}
               </p>
             )}
-
             <button
               type="submit"
               disabled={loading}
@@ -240,5 +240,4 @@ const ReportForm = () => {
     </div>
   );
 };
-
 export default ReportForm;

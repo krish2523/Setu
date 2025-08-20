@@ -9,6 +9,7 @@ import {
   updateDoc,
   arrayUnion,
   serverTimestamp,
+  increment,
 } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
@@ -23,25 +24,21 @@ const IncidentDetailsPage = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setError("No report ID provided.");
+      setLoading(false);
+      return;
+    }
 
-    setLoading(true);
     const docRef = doc(db, "reports", id);
-
     const unsubscribe = onSnapshot(
       docRef,
       (docSnap) => {
-        if (docSnap.exists()) {
-          setReport({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          setError("Report not found.");
-        }
+        if (docSnap.exists()) setReport({ id: docSnap.id, ...docSnap.data() });
+        else setError("Report not found.");
         setLoading(false);
       },
-      (err) => {
-        setError("Failed to load report data.");
-        setLoading(false);
-      }
+      () => setError("Failed to load report data.")
     );
 
     return () => unsubscribe();
@@ -60,9 +57,10 @@ const IncidentDetailsPage = () => {
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
         volunteeredFor: arrayUnion(report.id),
+        points: increment(10), // Award 10 points
       });
 
-      alert("Thank you for volunteering!");
+      alert("Thank you for volunteering! You've earned 10 points.");
       navigate("/activity");
     } catch (err) {
       alert("Error volunteering. Please try again.");
@@ -93,7 +91,6 @@ const IncidentDetailsPage = () => {
       <main className="max-w-6xl mx-auto p-8">
         <div className="bg-white p-8 rounded-lg shadow-md">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left Column: Details & Photos */}
             <div className="md:col-span-2 space-y-6">
               <div>
                 <p className="text-sm font-semibold text-green-600">
@@ -108,7 +105,7 @@ const IncidentDetailsPage = () => {
                   <img
                     key={index}
                     src={url}
-                    alt={`Incident photo ${index + 1}`}
+                    alt={`Incident ${index + 1}`}
                     className="h-56 w-auto object-cover rounded-lg shadow-sm"
                   />
                 ))}
@@ -120,8 +117,6 @@ const IncidentDetailsPage = () => {
                 <p className="text-gray-700">{report.description}</p>
               </div>
             </div>
-
-            {/* Right Column: Map & Volunteer Action */}
             <div className="md:col-span-1 space-y-6">
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -134,7 +129,6 @@ const IncidentDetailsPage = () => {
                   />
                 </div>
               </div>
-
               {report.status === "in_progress" ? (
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-bold text-blue-800">Ready to Help?</h3>
@@ -144,7 +138,7 @@ const IncidentDetailsPage = () => {
                   </p>
                   <button
                     onClick={handleVolunteer}
-                    className="w-full py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
+                    className="w-full py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                   >
                     Volunteer for this Initiative
                   </button>
@@ -167,5 +161,4 @@ const IncidentDetailsPage = () => {
     </div>
   );
 };
-
 export default IncidentDetailsPage;
