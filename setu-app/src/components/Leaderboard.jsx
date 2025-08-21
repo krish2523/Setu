@@ -1,4 +1,3 @@
-// src/components/Leaderboard.jsx
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase/config";
 import {
@@ -6,6 +5,7 @@ import {
   query,
   orderBy,
   limit,
+  where,
   onSnapshot,
 } from "firebase/firestore";
 
@@ -14,21 +14,40 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Create the query for citizens ordered by points
     const usersRef = collection(db, "users");
-    const q = query(usersRef, orderBy("points", "desc"), limit(5));
+    const q = query(
+      usersRef,
+      where("role", "==", "citizen"),
+      orderBy("points", "desc"),
+      limit(5)
+    );
 
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
-        const usersData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const usersData = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          console.log("User data:", {
+            id: doc.id,
+            role: data.role,
+            points: data.points,
+          }); // Debug log
+          return {
+            id: doc.id,
+            ...data,
+          };
+        });
+        console.log("Total citizens found:", usersData.length); // Debug log
         setTopUsers(usersData);
         setLoading(false);
       },
       (error) => {
+        // If there's an index error, it will show here
         console.error("Error fetching leaderboard: ", error);
+        if (error.code === "failed-precondition") {
+          console.log("Need to create composite index for role and points");
+        }
         setLoading(false);
       }
     );
@@ -38,6 +57,17 @@ const Leaderboard = () => {
 
   if (loading) {
     return <p className="text-center text-gray-500">Loading leaderboard...</p>;
+  }
+
+  if (topUsers.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-bold text-gray-900 text-center mb-4">
+          Community Leaderboard
+        </h3>
+        <p className="text-center text-gray-500">No citizens found</p>
+      </div>
+    );
   }
 
   return (
