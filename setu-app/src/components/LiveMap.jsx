@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "../firebase/config";
 import { collection, query, onSnapshot } from "firebase/firestore";
-import ResizeMap from "./ResizeMap"; // Import the helper
+import ResizeMap from "./ResizeMap";
 
 // Define custom icons for different statuses
 const redIcon = new L.Icon({
@@ -58,7 +58,7 @@ const LiveMap = () => {
   const defaultPosition = [22.5726, 88.3639]; // Kolkata
 
   useEffect(() => {
-    const q = query(collection(db, "incidents")); // ✅ fixed: match your Firestore
+    const q = query(collection(db, "reports")); // <-- changed from "incidents" to "reports"
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const incidentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -79,22 +79,27 @@ const LiveMap = () => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
-      {incidents.map((incident) => (
-        <Marker
-          key={incident.id}
-          position={[incident.location.lat, incident.location.lng]}
-          icon={getIcon(incident.status)}
-        >
-          <Popup>
-            <b>{incident.title}</b>
-            <br />
-            {incident.description}
-            <br />
-            <small>Status: {incident.status}</small>
-          </Popup>
-        </Marker>
-      ))}
-      <ResizeMap /> {/* Ensures map resizes properly */}
+      {incidents.map(
+        (incident) =>
+          incident.location &&
+          typeof incident.location.lat === "number" &&
+          typeof incident.location.lng === "number" && (
+            <Marker
+              key={incident.id}
+              position={[incident.location.lat, incident.location.lng]}
+              icon={getIcon(incident.status)}
+            >
+              <Popup>
+                <b>{incident.title}</b>
+                <br />
+                {incident.description}
+                <br />
+                <small>Status: {incident.status}</small>
+              </Popup>
+            </Marker>
+          )
+      )}
+      <ResizeMap />
     </MapContainer>
   );
 };

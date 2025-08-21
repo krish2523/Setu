@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 
 // Pages
+import Dashboard from "./pages/Dashboard"; // <-- Import your main dashboard
 import CitizenDashboard from "./pages/CitizenDashboard";
 import NgoDashboard from "./pages/NgoDashboard";
 import Login from "./components/Login";
@@ -9,7 +10,7 @@ import SignUp from "./components/SignUp";
 import ReportForm from "./pages/ReportForm";
 import MyActivity from "./pages/MyActivity";
 import IncidentDetailsPage from "./pages/IncidentDetailsPage";
-import NgoActivity from "./pages/NgoActivity"; // NGO activity
+import NgoActivity from "./pages/NgoActivity";
 
 function App() {
   const { user, loading } = useAuth();
@@ -25,15 +26,24 @@ function App() {
   return (
     <div>
       <Routes>
-        {/* Home: citizen vs NGO */}
+        {/* Always show Dashboard as the first screen */}
+        <Route path="/" element={<Dashboard />} />
+
+        {/* Optional: Role-based dashboards if you want to keep them */}
         <Route
-          path="/"
+          path="/citizen"
           element={
-            user?.role === "ngo" ? <NgoDashboard /> : <CitizenDashboard />
+            user ? (
+              user.role === "citizen" ? (
+                <CitizenDashboard />
+              ) : (
+                <Navigate to="/" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
-
-        {/* NGO dashboard explicit path */}
         <Route
           path="/ngo"
           element={
