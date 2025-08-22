@@ -15,7 +15,7 @@ import MapDisplay from "../components/MapDisplay";
 import "../styles/ReportForm.css";
 
 // Your Vercel ML API Endpoint
-const ML_API_URL = "https://setu-sandy.vercel.app/classify";
+const ML_API_URL = "http://localhost:8000/classify";
 
 const ReportForm = () => {
   const { user } = useAuth();

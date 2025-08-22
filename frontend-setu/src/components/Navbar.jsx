@@ -26,12 +26,20 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const dashboardLink = () => {
+    switch (user?.role) {
+      case "ngo":
+        return "/ngo";
+      case "government":
+        return "/government";
+      default:
+        return "/";
+    }
+  };
+
   return (
     <nav className="bg-white/90 backdrop-blur-md shadow-sm p-2 flex justify-between items-center sticky top-0 z-50">
-      <Link
-        to={user?.role === "ngo" ? "/ngo" : "/"}
-        className="flex items-center gap-2 pl-4"
-      >
+      <Link to={dashboardLink()} className="flex items-center gap-2 pl-4">
         <Logo />
         <span className="text-lg font-bold text-gray-800">Setu</span>
       </Link>
@@ -53,7 +61,16 @@ const Navbar = () => {
 
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-white rounded-md shadow-xl z-20">
-                {/* Role-aware activity link */}
+                {/* UPDATED: Government users now see the Community link */}
+                <Link
+                  to="/community"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  Community
+                </Link>
+
+                {/* Role-aware activity link (hidden for government) */}
                 {user?.role === "ngo" ? (
                   <Link
                     to="/ngo/activity"
@@ -62,7 +79,7 @@ const Navbar = () => {
                   >
                     Activity
                   </Link>
-                ) : (
+                ) : user?.role === "citizen" ? (
                   <Link
                     to="/activity"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -70,7 +87,7 @@ const Navbar = () => {
                   >
                     My Activity
                   </Link>
-                )}
+                ) : null}
 
                 <button
                   onClick={handleLogout}

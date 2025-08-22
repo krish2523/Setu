@@ -1,23 +1,34 @@
 // src/pages/Dashboard.jsx
+
 import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import CitizenDashboard from "./CitizenDashboard";
 import NgoDashboard from "./NgoDashboard";
-import HomePage from "./HomePage";
+import GovernmentDashboard from "./GovernmentDashboard";
 
+// This component acts as a router based on the user's role.
 const Dashboard = () => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
-  if (loading) {
-    return <div className="text-center p-8">Loading Application...</div>;
+  // Display a loading or default state while user data is being fetched
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading user data...
+      </div>
+    );
   }
 
-  if (user) {
-    // Check for the role inside the user object
-    return user.role === "citizen" ? <CitizenDashboard /> : <NgoDashboard />;
+  // Check the user's role and render the appropriate dashboard
+  switch (user.role) {
+    case "ngo":
+      return <NgoDashboard />;
+    case "government":
+      return <GovernmentDashboard />;
+    case "citizen":
+    default:
+      return <CitizenDashboard />;
   }
-
-  return <HomePage />;
 };
 
 export default Dashboard;

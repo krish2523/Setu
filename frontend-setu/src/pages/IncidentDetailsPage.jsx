@@ -1,3 +1,4 @@
+// src/pages/IncidentDetailsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase/config";
@@ -14,6 +15,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
+import "../styles/IncidentDetailsPage.css";
 
 const IncidentDetailsPage = () => {
   const { id } = useParams();
@@ -182,28 +184,33 @@ const IncidentDetailsPage = () => {
               </div>
 
               {report.severity != null && (
-                <div className="bg-gray-50 p-4 rounded-lg border">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    AI Analysis Results
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-sm text-gray-500">Severity</p>
-                      <p className="text-2xl font-bold text-purple-600">
-                        {report.severity}/100
-                      </p>
+                <div className="analysis-card">
+                  <h3 className="analysis-title">AI Analysis Results</h3>
+                  <div className="analysis-grid">
+                    <div className="analysis-metric">
+                      <span className="metric-label">Category Match</span>
+                      <span className="metric-value">{report.category}</span>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Level</p>
-                      <p className="text-2xl font-bold text-purple-600">
+                    <div className="analysis-metric">
+                      <span className="metric-label">Severity Level</span>
+                      <span className="metric-value">
                         {report.severity_level}
-                      </p>
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Scale</p>
-                      <p className="text-2xl font-bold text-purple-600">
-                        {report.scale}
-                      </p>
+                    <div className="analysis-metric">
+                      <span className="metric-label">Scale</span>
+                      <span className="metric-value">{report.scale}</span>
+                    </div>
+                    <div className="analysis-metric full-width">
+                      <span className="metric-label">
+                        Severity Score: {report.severity}/100
+                      </span>
+                      <div className="severity-bar-container">
+                        <div
+                          className="severity-bar"
+                          style={{ width: `${report.severity}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </div>

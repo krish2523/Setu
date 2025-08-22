@@ -1,0 +1,71 @@
+/* src/styles/SustainabilityScorecard.css */
+
+.scorecard-container {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.scorecard-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.scorecard-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.scorecard-header p {
+  font-size: 1rem;
+  color: #4a5568;
+  margin-top: 0.25rem;
+}
+
+.scorecard-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.scorecard-chart {
+  flex: 2;
+}
+
+.scorecard-summary {
+  flex: 1;
+  text-align: center;
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #f1f5f9;
+}
+
+.summary-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.summary-score {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #16a34a; /* Green for positive score */
+  margin: 0.5rem 0;
+}
+
+.summary-footer {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Recharts Customization */
+.recharts-wrapper .recharts-yAxis .recharts-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  fill: #475569;
+}

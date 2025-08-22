@@ -1,0 +1,60 @@
+/* src/styles/IncidentDetailsPage.css */
+
+.analysis-card {
+  background-color: #f8fafc; /* A very light gray background */
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.analysis-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Three columns for the metrics */
+  gap: 1.5rem;
+}
+
+.analysis-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-metric.full-width {
+  grid-column: 1 / -1; /* Makes the severity bar span all columns */
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.severity-bar-container {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  height: 0.75rem;
+  margin-top: 0.25rem;
+  overflow: hidden;
+}
+
+.severity-bar {
+  height: 100%;
+  border-radius: 9999px;
+  background-image: linear-gradient(to right, #fca5a5, #ef4444); /* Red gradient */
+  transition: width 0.5s ease-in-out;
+}

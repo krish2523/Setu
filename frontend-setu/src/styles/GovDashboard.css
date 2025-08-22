@@ -1,0 +1,223 @@
+/* src/styles/GovDashboard.css */
+.gov-dashboard-container {
+  min-height: 100vh;
+  background-color: #f8fafc; /* A slightly softer background */
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+  color: #1a202c;
+}
+
+.gov-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0; /* Added subtle separator */
+}
+
+.gov-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #1a202c;
+  letter-spacing: -0.025em;
+}
+
+.gov-user-badge {
+    background-color: #f0f9ff;
+    color: #0369a1; /* A slightly richer blue */
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: 1px solid #e0f2fe;
+}
+
+.gov-main-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .gov-main-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+  }
+  .activity-feed-card {
+    grid-row: span 2 / span 2;
+  }
+}
+
+.dashboard-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card:hover {
+  border-color: #38a169; /* Add a green border on hover for feedback */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2d3748;
+  flex-shrink: 0;
+}
+
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-container.scrollable {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  transition: background-color 0.2s;
+}
+.list-item:hover {
+  background-color: #f1f5f9;
+}
+.ward-name {
+  color: #1a202c;
+}
+.ward-score {
+  font-weight: 600;
+  color: #15803d;
+}
+
+.incident-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+.incident-title {
+    font-weight: 500;
+    color: #1a202c;
+}
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+.status-in-progress { background-color: #fef3c7; color: #b45309; }
+.status-verified { background-color: #dbeafe; color: #1e40af; }
+.status-pending { background-color: #fee2e2; color: #991b1b; }
+
+
+.task-overview-metrics {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.metric-number {
+  font-size: 2rem;
+  font-weight: 700;
+}
+.metric-number.completed { color: #16a34a; }
+.metric-number.pending { color: #dc2626; }
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 1.25rem;
+  overflow: hidden;
+}
+.progress-bar {
+  background-color: #22c55e;
+  height: 100%;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: width 0.5s ease-in-out;
+}
+
+.ngo-list-card {
+  grid-column: 1 / -1;
+}
+.ngo-list-container {
+  max-height: 24rem;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+}
+.ngo-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+@media (min-width: 768px) {
+  .ngo-list-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.ngo-list-item {
+  padding: 0.75rem;
+  background-color: #f0f9ff;
+  border-radius: 0.5rem;
+  color: #0c4a6e;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.ngo-list-item:hover {
+  background-color: #e0f2fe;
+}
+
+/* Custom Scrollbar */
+.list-container.scrollable::-webkit-scrollbar,
+.ngo-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+.list-container.scrollable::-webkit-scrollbar-track,
+.ngo-list-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+.list-container.scrollable::-webkit-scrollbar-thumb,
+.ngo-list-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.list-container.scrollable::-webkit-scrollbar-thumb:hover,
+.ngo-list-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

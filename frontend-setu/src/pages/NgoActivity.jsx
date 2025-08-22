@@ -15,6 +15,7 @@ import {
   increment,
   orderBy,
 } from "firebase/firestore";
+import SustainabilityScorecard from "../components/SustainabilityScorecard"; // Import the scorecard
 
 const NgoActivity = () => {
   const { user } = useAuth();
@@ -23,7 +24,10 @@ const NgoActivity = () => {
   const isNgo = user?.role === "ngo";
 
   useEffect(() => {
-    if (!user || !isNgo) return;
+    if (!user || !isNgo) {
+      setLoading(false);
+      return;
+    }
 
     // All incidents assigned to this NGO
     const q = query(
@@ -53,10 +57,14 @@ const NgoActivity = () => {
     return { completed, inProgress };
   }, [assigned]);
 
+  // Filter for completed reports to pass to the scorecard
+  const completedReports = useMemo(() => {
+    return assigned.filter((report) => report.status === "completed");
+  }, [assigned]);
+
   const setStatus = async (report, newStatus) => {
     if (!user || !isNgo) return;
 
-    // Simple guard rails for expected transitions:
     const canToInProgress =
       report.status === "verified" && newStatus === "in_progress";
     const canToCompleted =
@@ -75,12 +83,10 @@ const NgoActivity = () => {
         updatedBy: user.uid,
       });
 
-      // +10 only when completing (Accept +5 is handled in IncidentDetails on Accept)
       if (newStatus === "completed") {
         await updateDoc(doc(db, "users", user.uid), { points: increment(10) });
         alert("Marked as completed. +10 points awarded ✅");
       } else {
-        // in_progress
         alert("Marked as in progress.");
       }
     } catch (e) {
@@ -88,6 +94,17 @@ const NgoActivity = () => {
       alert("Failed to update status. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-100 min-h-screen">
+        <Navbar />
+        <div className="max-w-4xl mx-auto p-8 text-center">
+          Loading Activity...
+        </div>
+      </div>
+    );
+  }
 
   if (!isNgo) {
     return (
@@ -107,7 +124,12 @@ const NgoActivity = () => {
       <Navbar />
 
       <main className="max-w-6xl mx-auto p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Activity</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          NGO Activity Dashboard
+        </h1>
+
+        {/* Sustainability Scorecard */}
+        <SustainabilityScorecard completedReports={completedReports} />
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -133,7 +155,7 @@ const NgoActivity = () => {
               {user?.points ?? 0}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              +5 on accept (via Incident Details), +10 on completion
+              +5 on accept, +10 on completion
             </p>
           </div>
         </div>
@@ -141,12 +163,10 @@ const NgoActivity = () => {
         {/* Assigned Incidents */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Assigned Incidents
+            Your Assigned Incidents
           </h2>
 
-          {loading ? (
-            <p className="text-gray-500">Loading...</p>
-          ) : assigned.length === 0 ? (
+          {assigned.length === 0 ? (
             <p className="text-gray-500">No incidents assigned yet.</p>
           ) : (
             <ul className="divide-y">
@@ -191,7 +211,6 @@ const NgoActivity = () => {
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {/* Only allow verified -> in_progress */}
                       <button
                         onClick={() => setStatus(r, "in_progress")}
                         disabled={r.status !== "verified"}
@@ -204,13 +223,12 @@ const NgoActivity = () => {
                         Mark In Progress
                       </button>
 
-                      {/* Only allow in_progress -> completed */}
                       <button
                         onClick={() => setStatus(r, "completed")}
                         disabled={r.status !== "in_progress"}
                         className={`px-3 py-1 rounded-md text-sm font-semibold border ${
                           r.status !== "in_progress"
-                            ? "bg-gray-2 00 text-gray-500 cursor-not-allowed"
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                             : "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
                         }`}
                       >
