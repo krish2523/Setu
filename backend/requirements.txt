@@ -5,6 +5,7 @@ pydantic
 python-dotenv
 requests
 pillow
+streamlit
 
 # Smaller, more focused LangChain packages
 langchain-core
