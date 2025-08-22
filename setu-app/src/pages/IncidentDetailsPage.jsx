@@ -1,4 +1,3 @@
-// src/pages/IncidentDetailsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase/config";
@@ -15,7 +14,6 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
-// import { uploadImage } from "../utils/storage"; // Uncomment and implement for real uploads
 
 const IncidentDetailsPage = () => {
   const { id } = useParams();
@@ -63,7 +61,6 @@ const IncidentDetailsPage = () => {
     };
   }, [id]);
 
-  // Citizen: Volunteer
   const handleVolunteer = async () => {
     if (!user || !report) return;
     try {
@@ -86,7 +83,6 @@ const IncidentDetailsPage = () => {
     }
   };
 
-  // NGO: Accept Incident
   const handleAcceptIncident = async () => {
     if (!user || !report) return;
     try {
@@ -106,28 +102,23 @@ const IncidentDetailsPage = () => {
     }
   };
 
-  // NGO: Mark as Completed
   const handleMarkAsCompleted = async () => {
     if (!user || !report) return;
     if (!afterImage) {
       alert("Please upload an 'after' photo to show the completed work.");
       return;
     }
-
     try {
-      // const afterPhotoURL = await uploadImage(afterImage, `completions/${report.id}`);
-      const afterPhotoURL = "URL_FROM_STORAGE_PLACEHOLDER"; // Replace with real upload logic
-
+      // IMPORTANT: Replace this with your real image upload logic
+      const afterPhotoURL = "URL_FROM_STORAGE_PLACEHOLDER";
       const reportRef = doc(db, "reports", report.id);
       await updateDoc(reportRef, {
         status: "completed",
         completedAt: serverTimestamp(),
         afterPhotoURL: afterPhotoURL,
       });
-
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, { points: increment(25) });
-
       alert("Incident resolved! You've earned 25 points.");
       navigate("/dashboard");
     } catch (err) {
@@ -136,14 +127,15 @@ const IncidentDetailsPage = () => {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div>
         <Navbar />
         <p className="p-8 text-center">Loading...</p>
       </div>
     );
-  if (error || !report)
+  }
+  if (error || !report) {
     return (
       <div>
         <Navbar />
@@ -152,6 +144,7 @@ const IncidentDetailsPage = () => {
         </p>
       </div>
     );
+  }
 
   const hasVolunteered = volunteers.some((v) => v.id === user?.uid);
 
@@ -187,7 +180,35 @@ const IncidentDetailsPage = () => {
                 </h3>
                 <p className="text-gray-700">{report.description}</p>
               </div>
-              {/* List of Volunteers */}
+
+              {report.severity != null && (
+                <div className="bg-gray-50 p-4 rounded-lg border">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    AI Analysis Results
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-sm text-gray-500">Severity</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {report.severity}/100
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Level</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {report.severity_level}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Scale</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {report.scale}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {volunteers.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-blue-700 mb-2">
@@ -202,7 +223,7 @@ const IncidentDetailsPage = () => {
                   </ul>
                 </div>
               )}
-              {/* After Photo if completed */}
+
               {report.status === "completed" && report.afterPhotoURL && (
                 <div>
                   <h3 className="text-lg font-semibold text-purple-700 mb-2">
@@ -231,12 +252,12 @@ const IncidentDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Citizen: Volunteer */}
               {report.status === "in_progress" && user?.role === "citizen" && (
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-bold text-blue-800">Ready to Help?</h3>
                   <p className="text-sm text-blue-700 mt-1 mb-3">
-                    The assigned NGO is working on this. You can volunteer to help them.
+                    The assigned NGO is working on this. You can volunteer to
+                    help them.
                   </p>
                   <button
                     onClick={handleVolunteer}
@@ -254,12 +275,14 @@ const IncidentDetailsPage = () => {
                 </div>
               )}
 
-              {/* NGO: Accept Incident */}
               {report.status === "verified" && user?.role === "ngo" && (
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="font-bold text-green-800">Accept this Case?</h3>
+                  <h3 className="font-bold text-green-800">
+                    Accept this Case?
+                  </h3>
                   <p className="text-sm text-green-700 mt-1 mb-3">
-                    This incident has been verified. Accept it to take responsibility.
+                    This incident has been verified. Accept it to take
+                    responsibility.
                   </p>
                   <button
                     onClick={handleAcceptIncident}
@@ -270,7 +293,6 @@ const IncidentDetailsPage = () => {
                 </div>
               )}
 
-              {/* NGO: Mark as Completed */}
               {report.status === "in_progress" &&
                 user?.uid === report.assignedNgoId && (
                   <div className="bg-purple-50 p-4 rounded-lg">
@@ -278,7 +300,8 @@ const IncidentDetailsPage = () => {
                       Resolve This Incident
                     </h3>
                     <p className="text-sm text-purple-700 mt-1 mb-3">
-                      Upload a photo of the completed work to mark this incident as resolved.
+                      Upload a photo of the completed work to mark this as
+                      resolved.
                     </p>
                     <input
                       type="file"
@@ -296,10 +319,12 @@ const IncidentDetailsPage = () => {
                   </div>
                 )}
 
-              {/* Status Display */}
               {!(report.status === "in_progress" && user?.role === "citizen") &&
                 !(report.status === "verified" && user?.role === "ngo") &&
-                !(report.status === "in_progress" && user?.uid === report.assignedNgoId) && (
+                !(
+                  report.status === "in_progress" &&
+                  user?.uid === report.assignedNgoId
+                ) && (
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <h3 className="font-bold text-gray-800">
                       Status: {report.status.replace(/_/g, " ")}
@@ -318,4 +343,5 @@ const IncidentDetailsPage = () => {
     </div>
   );
 };
+
 export default IncidentDetailsPage;

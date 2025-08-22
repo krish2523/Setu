@@ -1,4 +1,3 @@
-// src/pages/ReportForm.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/config";
@@ -15,6 +14,9 @@ import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
 import "../styles/ReportForm.css";
 
+// Your Vercel ML API Endpoint
+const ML_API_URL = "https://setu-sandy.vercel.app/classify";
+
 const ReportForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ const ReportForm = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Submitting Report...");
   const [locationLoading, setLocationLoading] = useState(true);
 
   const fetchLocation = () => {
@@ -67,8 +70,11 @@ const ReportForm = () => {
     setLoading(true);
     setError("");
 
+    let docRef;
+
     try {
       // Step 1: Upload photos to Cloudinary
+      setLoadingMessage("Uploading images...");
       const uploadPromises = photos.map((photo) => {
         const formData = new FormData();
         formData.append("file", photo);
@@ -85,8 +91,9 @@ const ReportForm = () => {
       const cloudinaryResponses = await Promise.all(uploadPromises);
       const photoURLs = cloudinaryResponses.map((res) => res.secure_url);
 
-      // Step 2: Save the report to Firestore
-      await addDoc(collection(db, "reports"), {
+      // Step 2: Save the initial report to Firestore to get a document ID
+      setLoadingMessage("Saving initial report...");
+      docRef = await addDoc(collection(db, "reports"), {
         title,
         description,
         category,
@@ -98,17 +105,46 @@ const ReportForm = () => {
         status: "pending_verification",
       });
 
-      // Step 3: Award 5 points
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
-        points: increment(5),
+      // Step 3: Call the ML API for analysis using the first image
+      setLoadingMessage("Analyzing incident with AI...");
+      const firstPhotoURL = photoURLs[0];
+      const mlResponse = await fetch(ML_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url: firstPhotoURL }),
       });
 
+      // UPDATED: More detailed error handling for the API call
+      if (!mlResponse.ok) {
+        // Try to get a more specific error message from the API's response body
+        const errorData = await mlResponse
+          .json()
+          .catch(() => ({ detail: mlResponse.statusText }));
+        throw new Error(
+          `AI analysis failed: ${errorData.detail || "Unknown server error"}`
+        );
+      }
+
+      const analysisResult = await mlResponse.json();
+
+      // Step 4: Update the report with the analysis and set status to "verified"
+      setLoadingMessage("Finalizing report...");
+      await updateDoc(docRef, {
+        status: "verified",
+        ...analysisResult,
+      });
+
+      // Step 5: Award points
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { points: increment(5) });
+
       setLoading(false);
-      alert("Report submitted successfully! You've earned 5 points.");
+      alert("Report submitted and verified! You've earned 5 points.");
       navigate("/");
     } catch (err) {
-      setError("Failed to submit report. Please try again.");
+      setError(
+        `An error occurred: ${err.message}. Your report may be saved in a pending state.`
+      );
       setLoading(false);
       console.error(err);
     }
@@ -232,7 +268,7 @@ const ReportForm = () => {
               disabled={loading}
               className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
             >
-              {loading ? "Submitting Report..." : "Submit Report"}
+              {loading ? loadingMessage : "Submit Report"}
             </button>
           </form>
         </div>
@@ -240,4 +276,5 @@ const ReportForm = () => {
     </div>
   );
 };
+
 export default ReportForm;
