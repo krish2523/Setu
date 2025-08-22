@@ -1,10 +1,12 @@
-streamlit
-langgraph
-langchain
-langchain-openai
-pydantic
-python-dotenv
-pillow
-requests
+# Core libraries for the API
 fastapi
 uvicorn[standard]
+pydantic
+python-dotenv
+requests
+pillow
+
+# Smaller, more focused LangChain packages
+langchain-core
+langchain-openai
+langgraph
