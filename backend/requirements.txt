@@ -6,8 +6,7 @@ python-dotenv
 requests
 pillow
 
-
-# Smaller, more focused LangChain packages
+# The smallest possible LangChain packages
 langchain-core
 langchain-openai
 langgraph
