@@ -1,11 +1,11 @@
 // src/firebase/config.js
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// This configuration object now includes every key you listed.
+// Firebase configuration using Vite env variables
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
@@ -16,10 +16,10 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// ✅ Only initialize once
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize and export the services we'll use
+// Export services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);

@@ -20,6 +20,7 @@ const MyActivity = () => {
   const [myReports, setMyReports] = useState([]);
   const [volunteeredFor, setVolunteeredFor] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [points, setPoints] = useState(0);
 
   useEffect(() => {
     if (userLoading || !user) {
@@ -27,7 +28,7 @@ const MyActivity = () => {
       return;
     }
 
-    // ✅ Fetch user's reports using `authorId` === user.uid
+    // ✅ Fetch user's own reports
     const reportsQuery = query(
       collection(db, "reports"),
       where("authorId", "==", user.uid),
@@ -42,38 +43,45 @@ const MyActivity = () => {
           ...doc.data(),
         }));
         setMyReports(data);
-        setLoading(false);
       },
       (error) => {
         console.error("Error fetching user reports: ", error);
-        setLoading(false);
       }
     );
 
-    // ✅ Fetch volunteered reports if available in user profile
-    const fetchVolunteered = async () => {
-      if (
-        user.volunteeredFor &&
-        Array.isArray(user.volunteeredFor) &&
-        user.volunteeredFor.length > 0
-      ) {
-        try {
-          const promises = user.volunteeredFor.map((reportId) =>
-            getDoc(doc(db, "reports", reportId))
-          );
-          const reportDocs = await Promise.all(promises);
-          setVolunteeredFor(
-            reportDocs
-              .filter((doc) => doc.exists())
-              .map((doc) => ({ id: doc.id, ...doc.data() }))
-          );
-        } catch (error) {
-          console.error("Error fetching volunteered reports: ", error);
+    // ✅ Always fetch latest volunteeredFor + points from Firestore
+    const fetchUserData = async () => {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+
+          setPoints(userData.points || 0);
+
+          if (userData.volunteeredFor && userData.volunteeredFor.length > 0) {
+            const promises = userData.volunteeredFor.map((reportId) =>
+              getDoc(doc(db, "reports", reportId))
+            );
+            const reportDocs = await Promise.all(promises);
+            setVolunteeredFor(
+              reportDocs
+                .filter((doc) => doc.exists())
+                .map((doc) => ({ id: doc.id, ...doc.data() }))
+            );
+          } else {
+            setVolunteeredFor([]);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching volunteered reports: ", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchVolunteered();
+    fetchUserData();
 
     return () => unsubscribeReports();
   }, [user, userLoading]);
@@ -97,9 +105,7 @@ const MyActivity = () => {
           <div className="md:col-span-1 space-y-8">
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <h3 className="text-gray-500 font-semibold">Your Total Points</h3>
-              <p className="text-5xl font-bold text-green-600 mt-2">
-                {user?.points || 0}
-              </p>
+              <p className="text-5xl font-bold text-green-600 mt-2">{points}</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-gray-900 font-bold text-center mb-4">

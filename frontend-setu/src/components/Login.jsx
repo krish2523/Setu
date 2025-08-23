@@ -20,46 +20,42 @@ const Login = () => {
   // Helper function to get user role and redirect
   const handleLoginSuccess = async (user) => {
     try {
-      // 1. Fetch the user's document from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        // 2. Get the role from the document
-        const userData = userDoc.data();
-        const role = userData.role;
+        // Existing user
+        const { role } = userDoc.data();
 
-        // 3. Redirect based on the role
         if (role === "ngo") {
           navigate("/ngo");
         } else if (role === "government") {
           navigate("/government");
         } else {
-          navigate("/"); // Default to citizen dashboard
+          navigate("/citizen"); // default to citizen
         }
       } else {
-        // This is a fallback for Google users signing in for the first time
-        // who might not have a document yet.
+        // First-time Google login → create user as citizen
         await setDoc(
           userDocRef,
           {
             uid: user.uid,
             displayName: user.displayName,
             email: user.email,
-            role: "citizen", // Default role for new Google sign-ins
+            role: "citizen", // default role
             createdAt: serverTimestamp(),
             points: 0,
           },
           { merge: true }
         );
-        navigate("/");
+        navigate("/citizen"); // new Google users go to citizen dashboard
       }
     } catch (err) {
-      setError("Could not fetch user role. Logging in to default dashboard.");
-      navigate("/");
+      console.error("Error fetching role:", err);
+      setError("Could not fetch user role. Logging in to citizen dashboard.");
+      navigate("/citizen"); // fallback → always safe route
     }
   };
-
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");

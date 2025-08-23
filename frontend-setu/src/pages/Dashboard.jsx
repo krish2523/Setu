@@ -6,12 +6,12 @@ import CitizenDashboard from "./CitizenDashboard";
 import NgoDashboard from "./NgoDashboard";
 import GovernmentDashboard from "./GovernmentDashboard";
 
-// This component acts as a router based on the user's role.
 const Dashboard = () => {
-  const { user } = useAuth();
+  // 1. Destructure both user and loading
+  const { user, loading } = useAuth();
 
-  // Display a loading or default state while user data is being fetched
-  if (!user) {
+  // 2. First, handle the loading state
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading user data...
@@ -19,7 +19,14 @@ const Dashboard = () => {
     );
   }
 
-  // Check the user's role and render the appropriate dashboard
+  // 3. After loading, if there's no user, they shouldn't be here.
+  //    Returning null is a clean way to render nothing.
+  //    A router would typically redirect them to a login page.
+  if (!user) {
+    return null;
+  }
+
+  // 4. If we get here, loading is false and user exists. Now check the role.
   switch (user.role) {
     case "ngo":
       return <NgoDashboard />;

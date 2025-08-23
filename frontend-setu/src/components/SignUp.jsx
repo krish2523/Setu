@@ -25,6 +25,8 @@ const SignUp = () => {
       navigate("/ngo");
     } else if (userRole === "government") {
       navigate("/government");
+    }else if (userRole === "citizen") {
+      navigate("/citizen");
     } else {
       navigate("/");
     }

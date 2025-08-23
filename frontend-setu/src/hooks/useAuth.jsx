@@ -1,52 +1,51 @@
 // src/hooks/useAuth.js
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase/config";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); // { uid, email, ...firestoreFields } or null
+  const [loading, setLoading] = useState(true); // true until Firebase + Firestore finish
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-      if (authUser) {
-        // User is logged in, now get their full profile from Firestore
-        console.log("Auth user found:", authUser.uid);
+      if (!authUser) {
+        console.log("ℹ️ No auth user found.");
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log("✅ Auth user found:", authUser.uid);
         const userDocRef = doc(db, "users", authUser.uid);
         const docSnap = await getDoc(userDocRef);
 
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          console.log("Firestore document found:", userData);
-          // Combine the auth data with the Firestore data
+          console.log("📄 Firestore document exists:", true);
           setUser({
             uid: authUser.uid,
-            email: authUser.email,
-            ...userData, // This includes displayName, role, points, etc.
+            email: authUser.email ?? null,
+            ...userData, // expect fields like role, displayName, etc.
           });
         } else {
-          console.error(
-            "User document not found in Firestore for UID:",
-            authUser.uid
-          );
-          // Log out the user if their database record is missing
-          auth.signOut();
+          console.warn("⚠️ No Firestore user document for UID:", authUser.uid);
+          await signOut(auth);
           setUser(null);
         }
-      } else {
-        // User is signed out
-        console.log("No auth user found.");
+      } catch (err) {
+        console.error("❌ Error fetching Firestore user document:", err);
+        await signOut(auth);
         setUser(null);
+      } finally {
+        setLoading(false); // 👈 Only finish after Firestore resolved
       }
-      setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
-  // We only need to return the user and loading state.
-  // The role is now inside the user object (user.role).
   return { user, loading };
 };
