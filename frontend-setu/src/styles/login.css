@@ -1,11 +1,6 @@
-/* src/styles/login.css */
-
 .login-background {
   width: 100%;
   min-height: 100vh;
-  
-  /* Points to your background image */
-  background-image: url('../assets/background-images/background1.png'); 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

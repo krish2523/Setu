@@ -248,6 +248,7 @@
   border: 1px solid #cbd5e0;
   border-radius: 8px;
   font-size: 1rem;
+  color: #000000; /* UPDATED: Input text color to black */
 }
 
 .attach-btn {

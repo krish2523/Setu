@@ -195,7 +195,15 @@ export default function GovernmentDashboard() {
               <ul className="ngo-list-grid">
                 {ngos.map((ngo) => (
                   <li key={ngo.id} className="ngo-list-item">
-                    {ngo.displayName}
+                    <div className="ngo-info">
+                      <p className="ngo-name">{ngo.displayName}</p>
+                      <a
+                        href={`mailto:${ngo.email}`}
+                        className="ngo-email text-blue-600 hover:underline text-sm"
+                      >
+                        {ngo.email}
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>

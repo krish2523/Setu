@@ -64,7 +64,7 @@ const Hero = () => {
 
       <div className="hero-content">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-          Action for a Greener India
+          Setu:Action for a Greener India
         </h1>
 
         {/* --- The new quote is added here --- */}

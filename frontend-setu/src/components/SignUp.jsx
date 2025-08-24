@@ -124,7 +124,7 @@ const SignUp = () => {
           {/* Role Selection with Buttons */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              I am a...
+              I am...
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button

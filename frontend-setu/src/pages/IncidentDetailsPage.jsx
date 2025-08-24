@@ -295,7 +295,7 @@ const IncidentDetailsPage = () => {
                     onClick={handleAcceptIncident}
                     className="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
                   >
-                    Accept Incident
+                    Accept Request
                   </button>
                 </div>
               )}

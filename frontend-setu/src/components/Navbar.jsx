@@ -67,7 +67,7 @@ const Navbar = () => {
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setDropdownOpen(false)}
                 >
-                  Community
+                  My Community
                 </Link>
 
                 {/* Role-aware activity link (hidden for government) */}

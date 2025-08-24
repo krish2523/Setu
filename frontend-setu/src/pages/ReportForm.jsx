@@ -140,7 +140,7 @@ const ReportForm = () => {
 
       setLoading(false);
       alert("Report submitted and verified! You've earned 5 points.");
-      navigate("/");
+      navigate("/citizen");
     } catch (err) {
       setError(
         `An error occurred: ${err.message}. Your report may be saved in a pending state.`
