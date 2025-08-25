@@ -26,7 +26,7 @@ fastapi_app = FastAPI(
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://setu-sandy.vercel.app",  # Add your deployed frontend URL here
+    "https://setu-front.vercel.app/",  # Add your deployed frontend URL here
 ]
 fastapi_app.add_middleware(
     CORSMiddleware,
