@@ -8,6 +8,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  where, // NEW: Import where
 } from "firebase/firestore";
 
 // Define styles for different statuses
@@ -17,6 +18,13 @@ const statusStyles = {
     bg: "bg-yellow-100",
     text_color: "text-yellow-800",
     border: "border-yellow-500",
+  },
+  verified: {
+    // NEW: Added verified status for clarity
+    text: "Verified",
+    bg: "bg-cyan-100",
+    text_color: "text-cyan-800",
+    border: "border-cyan-500",
   },
   in_progress: {
     text: "In Progress",
@@ -32,14 +40,20 @@ const statusStyles = {
   },
 };
 
-// The onReportClick prop has been removed
 const ActivityFeed = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // UPDATED: Query now filters out any 'rejected' status reports
     const q = query(
       collection(db, "reports"),
+      where("status", "in", [
+        "pending_verification",
+        "verified",
+        "in_progress",
+        "completed",
+      ]),
       orderBy("createdAt", "desc"),
       limit(20)
     );
@@ -61,7 +75,6 @@ const ActivityFeed = () => {
   }
 
   return (
-    // The component now has a cleaner, more robust height and flex structure
     <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
       <h2 className="text-2xl font-bold text-gray-900 mb-4 flex-shrink-0">
         Live Incidents
@@ -75,7 +88,6 @@ const ActivityFeed = () => {
             border: "border-gray-500",
           };
           return (
-            // The entire card is now a single Link
             <Link
               to={`/incident/${report.id}`}
               key={report.id}

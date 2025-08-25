@@ -1,3 +1,4 @@
+// src/pages/ReportForm.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/config";
@@ -8,13 +9,14 @@ import {
   doc,
   updateDoc,
   increment,
+  deleteDoc, // Correctly imported deleteDoc
 } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
 import MapDisplay from "../components/MapDisplay";
 import "../styles/ReportForm.css";
 
-// Your Vercel ML API Endpoint
+// Your Render ML API Endpoint
 const ML_API_URL = "https://setu-backend-ghi8.onrender.com/classify";
 
 const ReportForm = () => {
@@ -73,7 +75,6 @@ const ReportForm = () => {
     let docRef;
 
     try {
-      // Step 1: Upload photos to Cloudinary
       setLoadingMessage("Uploading images...");
       const uploadPromises = photos.map((photo) => {
         const formData = new FormData();
@@ -91,7 +92,6 @@ const ReportForm = () => {
       const cloudinaryResponses = await Promise.all(uploadPromises);
       const photoURLs = cloudinaryResponses.map((res) => res.secure_url);
 
-      // Step 2: Save the initial report to Firestore to get a document ID
       setLoadingMessage("Saving initial report...");
       docRef = await addDoc(collection(db, "reports"), {
         title,
@@ -105,7 +105,6 @@ const ReportForm = () => {
         status: "pending_verification",
       });
 
-      // Step 3: Call the ML API for analysis using the first image
       setLoadingMessage("Analyzing incident with AI...");
       const firstPhotoURL = photoURLs[0];
       const mlResponse = await fetch(ML_API_URL, {
@@ -114,9 +113,7 @@ const ReportForm = () => {
         body: JSON.stringify({ image_url: firstPhotoURL }),
       });
 
-      // UPDATED: More detailed error handling for the API call
       if (!mlResponse.ok) {
-        // Try to get a more specific error message from the API's response body
         const errorData = await mlResponse
           .json()
           .catch(() => ({ detail: mlResponse.statusText }));
@@ -127,20 +124,29 @@ const ReportForm = () => {
 
       const analysisResult = await mlResponse.json();
 
-      // Step 4: Update the report with the analysis and set status to "verified"
+      if (analysisResult.category === "reject") {
+        setLoadingMessage("Cleaning up rejected report...");
+        await deleteDoc(docRef);
+        setLoading(false);
+        alert(
+          "Report Rejected: The AI determined this is not a valid environmental issue. No report was filed."
+        );
+        navigate("/");
+        return;
+      }
+
       setLoadingMessage("Finalizing report...");
       await updateDoc(docRef, {
         status: "verified",
         ...analysisResult,
       });
 
-      // Step 5: Award points
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, { points: increment(5) });
 
       setLoading(false);
       alert("Report submitted and verified! You've earned 5 points.");
-      navigate("/citizen");
+      navigate("/"); // Navigate to the main dashboard
     } catch (err) {
       setError(
         `An error occurred: ${err.message}. Your report may be saved in a pending state.`
