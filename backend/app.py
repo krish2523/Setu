@@ -10,6 +10,7 @@ from pydantic import BaseModel, HttpUrl
 import requests
 import threading
 import uvicorn
+from io import BytesIO
 
 # ==============================================================================
 # SECTION 1: FASTAPI BACKEND LOGIC
