@@ -9,7 +9,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import Logo from "./Logo";
-import "../styles/Login.css";
+import "../styles/login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");

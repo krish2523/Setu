@@ -9,6 +9,7 @@ import {
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import Logo from "./Logo";
+import "../styles/login.css";
 
 const SignUp = () => {
   const navigate = useNavigate();
