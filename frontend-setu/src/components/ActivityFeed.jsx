@@ -8,7 +8,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  where, // NEW: Import where
+  where,
 } from "firebase/firestore";
 
 // Define styles for different statuses
@@ -20,7 +20,6 @@ const statusStyles = {
     border: "border-yellow-500",
   },
   verified: {
-    // NEW: Added verified status for clarity
     text: "Verified",
     bg: "bg-cyan-100",
     text_color: "text-cyan-800",
@@ -45,7 +44,7 @@ const ActivityFeed = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // UPDATED: Query now filters out any 'rejected' status reports
+    // Query now filters out any 'rejected' status reports
     const q = query(
       collection(db, "reports"),
       where("status", "in", [

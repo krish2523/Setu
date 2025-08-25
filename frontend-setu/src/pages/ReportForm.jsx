@@ -9,7 +9,7 @@ import {
   doc,
   updateDoc,
   increment,
-  deleteDoc, // Correctly imported deleteDoc
+  deleteDoc,
 } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import Navbar from "../components/Navbar";
@@ -124,10 +124,12 @@ const ReportForm = () => {
 
       const analysisResult = await mlResponse.json();
 
+      // UPDATED: Check for 'reject' status
       if (analysisResult.category === "reject") {
         setLoadingMessage("Cleaning up rejected report...");
         await deleteDoc(docRef);
         setLoading(false);
+        // UPDATED: Alert message is more consistent
         alert(
           "Report Rejected: The AI determined this is not a valid environmental issue. No report was filed."
         );
@@ -146,7 +148,7 @@ const ReportForm = () => {
 
       setLoading(false);
       alert("Report submitted and verified! You've earned 5 points.");
-      navigate("/"); // Navigate to the main dashboard
+      navigate("/");
     } catch (err) {
       setError(
         `An error occurred: ${err.message}. Your report may be saved in a pending state.`
@@ -220,18 +222,43 @@ const ReportForm = () => {
                 <option value="Deforestation">Deforestation</option>
               </select>
             </div>
+            {/* UPDATED: Improved File Upload UI */}
             <div>
-              <label className="block text-sm font-medium text-black">
+              <label className="block text-sm font-medium text-black mb-2">
                 Upload Photos (Max 3)
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileChange}
-                required
-                className="mt-1 w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
-              />
+              <div className="file-upload-area">
+                <input
+                  type="file"
+                  id="file-upload"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  required
+                  className="file-input"
+                />
+                <label htmlFor="file-upload" className="file-label">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
+                  </svg>
+                  <span>
+                    {photos.length > 0
+                      ? `${photos.length} file(s) selected`
+                      : "Click to upload"}
+                  </span>
+                </label>
+              </div>
               <div className="mt-2 flex gap-2">
                 {photos.map((photo, index) => (
                   <img
